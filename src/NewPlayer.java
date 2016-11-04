@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Random;
-
 import de.ovgu.dke.teaching.ml.tictactoe.api.IBoard;
 import de.ovgu.dke.teaching.ml.tictactoe.api.IPlayer;
 import de.ovgu.dke.teaching.ml.tictactoe.api.IllegalMoveException;
@@ -20,20 +18,32 @@ import de.ovgu.dke.teaching.ml.tictactoe.game.Move;
 public class NewPlayer implements IPlayer {
 
 	int n = 5;
-	double[] w = new double[5];
-	int[] x = new int[5];
+	double[] w = new double[11];
+	int[] x = new int[11];
 
 	public NewPlayer() throws IOException {
 		x[0] = 1;
+		//Total number of posible tic tac toes
 		x[1] = 109;
 		x[2] = 109;
-		
+		//Total number of 2-groups
+		x[3] = 0;
+		x[4] = 0;
+		//Total number of 3-groups
+		x[5] = 0;
+		x[6] = 0;
+		//Total number of 4-groups
+		x[7] = 0;
+		x[8] = 0;
+		//Total number of 5-groups
+		x[9] = 0;
+		x[10] = 0;
 		try {
 			FileReader fr = new FileReader(new File("wvalues.txt"));
 			BufferedReader br = new BufferedReader(fr);
-			int t=0;
+			int t = 0;
 			for (String s : br.readLine().split(";")) {
-				w[t]= Double.parseDouble(s);
+				w[t] = Double.parseDouble(s);
 				t++;
 			}
 			br.close();
@@ -41,19 +51,19 @@ public class NewPlayer implements IPlayer {
 			// TODO Auto-generated catch block
 			FileWriter fw = new FileWriter(new File("wvalues.txt"));
 			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write("0.0;100.0;-100.0;0;0;");
+			bw.write("0.0;1.0;-1.0;1.0;-1.0;1.0;-1.0;1.0;-1.0;");
 			bw.close();
 			fw.close();
-			
+
 			FileReader fr = new FileReader(new File("wvalues.txt"));
 			BufferedReader br = new BufferedReader(fr);
-			int t=0;
+			int t = 0;
 			for (String s : br.readLine().split(";")) {
-				w[t]= Double.parseDouble(s);
+				w[t] = Double.parseDouble(s);
 				t++;
 			}
 			br.close();
-			
+
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,44 +71,11 @@ public class NewPlayer implements IPlayer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	public String getName() {
 		return "Andrea";
-	}
-
-	public Move smartMove(IBoard board) {
-
-		double maxV = -100;
-		Move maxM = null;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				for (int k = 0; k < n; k++) {
-					if (board.getFieldValue(new int[] { i, j, k }) == null) {
-						IBoard copy = board.clone();
-						Move newMove = new Move(this, new int[] { i, j, k });
-
-						try {
-							copy.makeMove(newMove);
-							int[] xt = x.clone();
-							updateXvalues(newMove.getPosition(), xt, copy, true);
-							double vt1 = calculateVFunction(xt);
-							if (vt1 > maxV) {
-								maxV = vt1;
-								maxM = newMove;
-							}
-
-						} catch (IllegalMoveException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
-		System.out.println("Vt1= "+maxV);
-		return maxM;
 	}
 
 	public int[] check(int i, int j, int dir, IBoard board) {
@@ -284,16 +261,36 @@ public class NewPlayer implements IPlayer {
 		return new int[] { checkP, checkO };
 	}
 
-	public Move randMove(IBoard board) {
-
-		Random r = new Random();
-		int x1, y1, z1;
-		do {
-			x1 = r.nextInt(5);
-			y1 = r.nextInt(5);
-			z1 = r.nextInt(5);
-		} while (board.getFieldValue(new int[] { x1, y1, z1 }) != null);
-		return new Move(this, new int[] { x1, y1, z1 });
+	public void countY(int[] xt, int[] c, boolean myMove) {
+		if (myMove && c[0] == 1 && c[1] >= 0) {
+			xt[2]--;
+		} else if (!myMove && c[1] == 1 && c[0] >= 0) {
+			xt[1]--;
+		}
+		
+		if (myMove && c[0] == 2 && c[1] == 0) {
+			xt[3]++;
+		} else if (!myMove && c[1] == 2 && c[0] == 0) {
+			xt[4]++;
+		} else if (myMove && c[0] == 3 && c[1] == 0) {
+			xt[5]++;
+			xt[3]--;
+		} else if (!myMove && c[1] == 2 && c[0] == 0) {
+			xt[6]++;
+			xt[4]--;
+		}else if (myMove && c[0] == 3 && c[1] == 0) {
+			xt[7]++;
+			xt[5]--;
+		} else if (!myMove && c[1] == 2 && c[0] == 0) {
+			xt[8]++;
+			xt[6]--;
+		}else if (myMove && c[0] == 3 && c[1] == 0) {
+			xt[9]++;
+			xt[7]--;
+		} else if (!myMove && c[1] == 2 && c[0] == 0) {
+			xt[10]++;
+			xt[8]--;
+		}
 	}
 
 	public void updateXvalues(int[] lastMove, int x[], IBoard board, boolean myMove) {
@@ -330,6 +327,57 @@ public class NewPlayer implements IPlayer {
 		} else if (lastMove[1] == lastMove[2] && lastMove[0] == (n - (lastMove[2] + 1))) {
 			countY(x, check(3, board), myMove);
 		}
+	}
+
+	public double calculateVFunction(int xt[]) {
+
+		double s = 0.0;
+		double d1 = x[1] + x[2];
+		for (int i = 0; i < xt.length; i++) {
+			s += xt[i] * w[i];
+		}
+		// Asumimos que d1 es factor común
+		if (d1 > 0)
+			return s;
+
+		return s;
+	}
+
+	public Move smartMove(IBoard board) {
+
+		double maxV=0;
+		Move maxM = null;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					if (board.getFieldValue(new int[] { i, j, k }) == null) {
+						IBoard copy = board.clone();
+						Move newMove = new Move(this, new int[] { i, j, k });
+
+						try {
+							copy.makeMove(newMove);
+							int[] xt = x.clone();
+							updateXvalues(newMove.getPosition(), xt, copy, true);
+							double vt1 = calculateVFunction(xt);
+							if(maxM == null){
+								maxV= vt1;
+								maxM = newMove;
+							}else{
+							if (vt1 > maxV) {
+								maxV = vt1;
+								maxM = newMove;
+							}}
+
+						} catch (IllegalMoveException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		System.out.println("Vt1= " + maxV);
+		return maxM;
 	}
 
 	public int[] makeMove(IBoard board) {
@@ -369,57 +417,9 @@ public class NewPlayer implements IPlayer {
 		return newMove.getPosition();
 	}
 
-	public void countX(int[] c) {
-		if (c[0] == 0 && c[1] == 0) {
-			x[1]++;
-			x[2]++;
-		} else if (c[0] == 0) {
-			x[2]++;
-		} else if (c[1] == 0) {
-			x[1]++;
-		}
-	}
-
-	public void countY(int[] xt, int[] c, boolean myMove) {
-		if (myMove && c[0] == 1 && c[1] >= 0) {
-			xt[2]--;
-		} else if (!myMove && c[1] == 1 && c[0] >= 0) {
-			xt[1]--;
-		}
-	}
-	/*
-	 * public void updateX(IBoard board) { x = new int[5]; for (int i = 0; i <
-	 * n; i++) { for (int j = 0; j < n; j++) { countX(check(i, j, 0, board));
-	 * countX(check(i, j, 1, board)); countX(check(i, j, 2, board)); } }
-	 * 
-	 * // Diagonales por capa
-	 * 
-	 * for (int i = 0; i < n; i++) { countX(check(i, 0, board)); countX(check(i,
-	 * 1, board)); countX(check(i, 2, board)); countX(check(i, 3, board));
-	 * countX(check(i, 4, board)); countX(check(i, 5, board)); }
-	 * 
-	 * // Diagonales transversales countX(check(0, board)); countX(check(1,
-	 * board)); countX(check(2, board)); countX(check(3, board));
-	 * 
-	 * }
-	 */
-
-	public double calculateVFunction(int xt[]) {
-
-		double s = 0.0;
-		double d1 = x[1]+x[2];
-		for (int i = 0; i < xt.length; i++) {
-			s += xt[i] * w[i];
-		}
-		//Asumimos que d1 es factor común
-		if(d1>0) return s/d1;
-		
-		return s;
-	}
-
 	public void onMatchEnds(IBoard board) {
 		double vt, vp;
-		
+
 		if (board.getWinner() == null) {
 			vt = 0.0;
 		} else if (board.getWinner().equals(this)) {
@@ -435,58 +435,55 @@ public class NewPlayer implements IPlayer {
 		double error = vt - vp;
 		System.out.println("error=" + error);
 		double lr = 0.05;
-		
-		
+
 		try {
-			File w_aux= new File("wvalues2.txt");
-			File w_main= new File("wvalues.txt");
+			File w_aux = new File("wvalues2.txt");
+			File w_main = new File("wvalues.txt");
 			FileWriter fw = new FileWriter(w_aux);
 			BufferedWriter bw = new BufferedWriter(fw);
-			
+
 			FileReader fr = new FileReader(w_main);
 			BufferedReader br = new BufferedReader(fr);
-			
-			
+
 			String s = "";
 			for (int i = 0; i < w.length; i++) {
 				w[i] = w[i] + lr * error * x[i];
-				s+= w[i]+";";
+				s += w[i] + ";";
 				System.out.println("x[" + i + "]=" + x[i]);
 				System.out.println("w[" + i + "]=" + w[i]);
 			}
 			bw.write(s);
 			bw.newLine();
-			String s1= br.readLine();
-			do{
+			String s1 = br.readLine();
+			do {
 				bw.write(s1);
 				bw.newLine();
-				
-			}while((s1=br.readLine())!=null);
+
+			} while ((s1 = br.readLine()) != null);
 			br.close();
 			bw.close();
-			
+
 			fw = new FileWriter(w_main);
 			bw = new BufferedWriter(fw);
-			
+
 			fr = new FileReader(w_aux);
 			br = new BufferedReader(fr);
-			s1= br.readLine();
-			do{
-				
+			s1 = br.readLine();
+			do {
+
 				bw.write(s1);
 				bw.newLine();
-				
-			}while((s1=br.readLine())!=null);
-			
+
+			} while ((s1 = br.readLine()) != null);
+
 			br.close();
 			bw.close();
 			w_aux.delete();
-			
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 
 	}
 
