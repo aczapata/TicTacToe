@@ -64,7 +64,7 @@ public class NewPlayer implements IPlayer {
 			x_bw.close();
 			x_fw.close();
 			
-			bw.write("0.0;1.25;-1.25;5.0;-5.0;20.0;-20.0;80.0;-80.0;");
+			bw.write("0.0;1.25;-1.25;5.0;-5.0;20.0;-80.0;80.0;-80.0;");
 			bw.close();
 			fw.close();
 			
@@ -451,16 +451,16 @@ public class NewPlayer implements IPlayer {
 		} else {
 			vt = -100.0;
 		}
-		
+		/*
 		IBoard copy = board.clone(); 
 		int[] lastMove = copy.getMoveHistory().get(copy.getMoveHistory().size() - 1).getPosition();
 		if(!copy.getMoveHistory().get(copy.getMoveHistory().size() - 1).getPlayer().equals(this)){
 			updateXvalues(lastMove, x, board, false);
 		}
-
+*/
 		vp = calculateVFunction(x);		
 		double error = vt - vp;		
-		double lr = 0.05;
+		double lr = 0.1;
 
 		try {
 			File w_main = new File("wvalues.txt");
